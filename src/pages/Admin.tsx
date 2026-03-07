@@ -125,12 +125,13 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
     if (work?.id) {
       // Add to existing work
+      const isPrimary = images.length === 0;
       const { error } = await supabase
         .from('work_images')
         .insert({
           work_id: work.id,
           image_url: urlToAdd,
-          is_primary: images.length === 0,
+          is_primary: isPrimary,
           display_order: images.length,
         });
 
@@ -138,6 +139,18 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         toast.error('Failed to add image');
         return;
       }
+
+      // If this is the first image (primary), update the works table
+      if (isPrimary) {
+        await supabase
+          .from('works')
+          .update({
+            image_url: urlToAdd,
+            thumbnail_url: urlToAdd,
+          })
+          .eq('id', work.id);
+      }
+
       toast.success('Image added!');
       setNewImageUrl('');
       fetchImages();
@@ -187,6 +200,23 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         .from('work_images')
         .update({ is_primary: true })
         .eq('id', imageId);
+
+      // Get the new primary image URL and update works table
+      const { data: primaryImage } = await supabase
+        .from('work_images')
+        .select('image_url')
+        .eq('id', imageId)
+        .single();
+
+      if (primaryImage) {
+        await supabase
+          .from('works')
+          .update({
+            image_url: primaryImage.image_url,
+            thumbnail_url: primaryImage.image_url,
+          })
+          .eq('id', work.id);
+      }
 
       toast.success('Primary image updated!');
       fetchImages();
