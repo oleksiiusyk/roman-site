@@ -607,12 +607,24 @@ const AdminDashboard: React.FC = () => {
         .from('works')
         .select(`
           *,
-          category:categories(*)
+          category:categories(*),
+          images:work_images!work_images_work_id_fkey(*)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWorks(data || []);
+
+      // Set image_url from primary work_image if exists
+      const worksWithImages = data?.map(work => {
+        const primaryImage = work.images?.find((img: any) => img.is_primary);
+        return {
+          ...work,
+          image_url: primaryImage?.image_url || work.image_url,
+          thumbnail_url: primaryImage?.image_url || work.thumbnail_url,
+        };
+      });
+
+      setWorks(worksWithImages || []);
     } catch (error) {
       console.error('Error fetching works:', error);
     } finally {
