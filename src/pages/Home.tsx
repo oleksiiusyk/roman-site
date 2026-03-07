@@ -7,7 +7,7 @@ import { supabase, type Work } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
 
 const Home: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [latestWorks, setLatestWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -126,11 +126,11 @@ const Home: React.FC = () => {
                     </div>
                     <div className="p-4">
                       <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors">
-                        {work.title_en}
+                        {i18n.language === 'uk' ? work.title_uk : work.title_en}
                       </h3>
                       {work.category && (
                         <span className="inline-block px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded-full mb-2">
-                          {work.category.icon} {work.category.name_en}
+                          {work.category.icon} {i18n.language === 'uk' ? work.category.name_uk : work.category.name_en}
                         </span>
                       )}
                       <div className="flex items-center justify-between text-gray-400 text-sm">
