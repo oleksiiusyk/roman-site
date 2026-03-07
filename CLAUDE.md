@@ -165,4 +165,4 @@ All database tables use **RLS policies** to protect data:
 
 - No image upload functionality yet (uses external image URLs via Imgur/Cloudinary/Supabase Storage)
 - `.font-racing` class is referenced but font may not be defined in CSS
-- User ratings useдавй session ID/IP hash stored client-side (can be manipulated)
+- User ratings use session ID/IP hash stored client-side (can be manipulated)

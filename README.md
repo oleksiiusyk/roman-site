@@ -64,18 +64,90 @@ npm run dev
 
 ## Admin Access
 
-Default admin password: `roman2024`
+Admin authentication uses **Supabase Auth**:
 
-To access the admin panel, navigate to `/admin` and enter the password.
+1. Create an admin user in Supabase Dashboard:
+   - Go to Authentication > Users > Add User
+   - Enter email and strong password
+   - Copy the User UUID
+
+2. Update `supabase-auth-migration.sql` with the UUID:
+   - Replace the UUID in the `is_admin()` function
+
+3. Run the migration in Supabase SQL Editor
+
+4. Access admin panel at `/admin` and login with email + password
 
 ## Deployment
 
-### Deploy to Vercel
+### Prerequisites
 
-1. Push your code to GitHub
-2. Import the project to Vercel
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+Before deploying, ensure you've:
+1. ✅ Created Supabase project and run all migrations:
+   - `supabase-schema.sql` - Initial database schema
+   - `supabase-images-migration.sql` - Multiple images support
+   - `supabase-auth-migration.sql` - Secure authentication & RLS policies
+
+2. ✅ Created admin user in Supabase Auth
+
+3. ✅ Have your Supabase credentials ready:
+   - Project URL
+   - Anon key
+
+### Deploy to Vercel (Recommended)
+
+#### Option 1: Via Vercel Dashboard (Easiest)
+
+1. **Push to GitHub** (if not already):
+   ```bash
+   # If you need to create a remote repository:
+   # 1. Create a new repository on GitHub
+   # 2. Add remote and push:
+   git remote add origin https://github.com/yourusername/roman-site.git
+   git push -u origin main
+   ```
+
+2. **Import to Vercel**:
+   - Go to [vercel.com](https://vercel.com)
+   - Click "Add New Project"
+   - Import your GitHub repository
+
+3. **Configure Environment Variables** in Vercel:
+   - `VITE_SUPABASE_URL` = your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` = your Supabase anon key
+
+4. **Deploy!** - Vercel will automatically build and deploy
+
+#### Option 2: Via Vercel CLI
+
+1. **Login to Vercel**:
+   ```bash
+   vercel login
+   ```
+
+2. **Deploy**:
+   ```bash
+   vercel --prod
+   ```
+
+3. **Follow prompts** to:
+   - Link to existing project or create new
+   - Configure build settings (auto-detected)
+   - Add environment variables
+
+### After Deployment
+
+1. **Add Environment Variables** to Vercel:
+   - Dashboard > Project > Settings > Environment Variables
+   - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+
+2. **Redeploy** if you added env vars after first deployment
+
+3. **Test the site**:
+   - Check homepage loads
+   - Test gallery filtering
+   - Test admin login
+   - Create a test work in admin panel
 
 ### Manual Build
 

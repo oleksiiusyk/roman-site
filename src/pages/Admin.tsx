@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { LogOut, Plus, Edit2, Trash2, Upload, Save, X } from 'lucide-react';
+import { LogOut, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { supabase, type Work, type Category, type WorkImage } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';

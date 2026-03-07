@@ -12,7 +12,6 @@ const Layout: React.FC = () => {
     { path: '/', icon: Home, label: t('nav.home') },
     { path: '/gallery', icon: Image, label: t('nav.gallery') },
     { path: '/about', icon: User, label: t('nav.about') },
-    { path: '/admin', icon: Settings, label: t('nav.admin') },
   ];
 
   const changeLanguage = (lng: string) => {
