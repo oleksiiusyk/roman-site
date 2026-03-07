@@ -1,14 +1,13 @@
 import React, { useRef, useState } from 'react';
-import { Upload, Camera, X, Loader } from 'lucide-react';
+import { Upload, Camera, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 interface ImageUploaderProps {
   onImageAdd: (imageUrl: string) => void;
-  uploadToSupabase?: boolean;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd, uploadToSupabase = false }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
@@ -79,7 +78,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd, uploadToSupab
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `works/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('work-images')
         .upload(filePath, file, {
           cacheControl: '3600',

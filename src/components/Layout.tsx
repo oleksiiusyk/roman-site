@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Image, User, Settings, Plane, Rocket, Trophy } from 'lucide-react';
+import { Home, Image, User, Plane, Rocket, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Layout: React.FC = () => {
