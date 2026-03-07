@@ -6,6 +6,7 @@ import { LogOut, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { supabase, type Work, type Category, type WorkImage } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import ImageUploader from '../components/ImageUploader';
 
 // Auth component with Supabase
 const AdminLogin: React.FC = () => {
@@ -114,8 +115,10 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     setImages(data || []);
   };
 
-  const addImage = async () => {
-    if (!newImageUrl.trim()) {
+  const addImage = async (imageUrl?: string) => {
+    const urlToAdd = imageUrl || newImageUrl;
+
+    if (!urlToAdd.trim()) {
       toast.error('Please enter an image URL');
       return;
     }
@@ -126,7 +129,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         .from('work_images')
         .insert({
           work_id: work.id,
-          image_url: newImageUrl,
+          image_url: urlToAdd,
           is_primary: images.length === 0,
           display_order: images.length,
         });
@@ -143,7 +146,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
       setImages([...images, {
         id: `temp-${Date.now()}`,
         work_id: '',
-        image_url: newImageUrl,
+        image_url: urlToAdd,
         is_primary: images.length === 0,
         display_order: images.length,
         created_at: new Date().toISOString(),
@@ -339,24 +342,13 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           Image Gallery ({images.length} images)
         </label>
 
-        {/* Add New Image */}
-        <div className="flex gap-2">
-          <input
-            type="url"
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder="https://example.com/image.jpg"
-            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
-            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
-          />
-          <button
-            type="button"
-            onClick={addImage}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <Plus size={18} />
-          </button>
-        </div>
+        {/* Image Uploader */}
+        <ImageUploader
+          onImageAdd={(imageUrl) => {
+            // Directly add the image with the URL
+            addImage(imageUrl);
+          }}
+        />
 
         {/* Images Grid */}
         {images.length > 0 && (
