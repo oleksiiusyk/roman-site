@@ -1,17 +1,20 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Image, User, Plane, Rocket, Trophy } from 'lucide-react';
+import { Home, Image, User, Settings, Plane, Rocket, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
 
 const Layout: React.FC = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const { user } = useAuth();
 
   const navigation = [
     { path: '/', icon: Home, label: t('nav.home') },
     { path: '/gallery', icon: Image, label: t('nav.gallery') },
     { path: '/about', icon: User, label: t('nav.about') },
+    ...(user ? [{ path: '/admin', icon: Settings, label: t('nav.admin') }] : []),
   ];
 
   const changeLanguage = (lng: string) => {

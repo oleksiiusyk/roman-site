@@ -76,7 +76,7 @@ const AdminLogin: React.FC = () => {
 };
 
 // Work form component
-const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void }> = ({ work, onSave, onCancel }) => {
+const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void; onImageUpdate?: () => void }> = ({ work, onSave, onCancel, onImageUpdate }) => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<WorkImage[]>([]);
@@ -154,6 +154,8 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
       toast.success('Image added!');
       setNewImageUrl('');
       fetchImages();
+      // Refresh parent works list to show updated thumbnail
+      if (onImageUpdate) onImageUpdate();
     } else {
       // Add to new work (temporary state)
       setImages([...images, {
@@ -707,6 +709,9 @@ const AdminDashboard: React.FC = () => {
             onCancel={() => {
               setEditingWork(null);
               setIsAddingNew(false);
+            }}
+            onImageUpdate={() => {
+              fetchWorks();
             }}
           />
         </div>
