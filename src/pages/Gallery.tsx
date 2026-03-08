@@ -29,6 +29,20 @@ const Gallery: React.FC = () => {
     }
   }, [works]);
 
+  // Client-side sorting for comment-based sorting
+  const getSortedWorks = () => {
+    if (sortBy === 'mostCommented') {
+      return [...works].sort((a, b) => {
+        const countA = commentCounts[a.id] || 0;
+        const countB = commentCounts[b.id] || 0;
+        return countB - countA;
+      });
+    }
+    return works;
+  };
+
+  const sortedWorks = getSortedWorks();
+
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -219,6 +233,7 @@ const Gallery: React.FC = () => {
                 <option value="oldest">{t('gallery.oldest')}</option>
                 <option value="mostViewed">{t('gallery.mostViewed')}</option>
                 <option value="topRated">{t('gallery.topRated')}</option>
+                <option value="mostCommented">{t('gallery.mostCommented')}</option>
               </select>
             </div>
 
@@ -262,7 +277,7 @@ const Gallery: React.FC = () => {
         <>
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {works.map((work, index) => (
+              {sortedWorks.map((work, index) => (
                 <motion.div
                   key={work.id}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -309,7 +324,7 @@ const Gallery: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {works.map((work, index) => (
+              {sortedWorks.map((work, index) => (
                 <motion.div
                   key={work.id}
                   initial={{ opacity: 0, x: -20 }}

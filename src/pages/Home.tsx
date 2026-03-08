@@ -3,19 +3,22 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Eye, Star, MessageCircle } from 'lucide-react';
-import { supabase, type Work } from '../lib/supabase';
+import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
 
 const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [latestWorks, setLatestWorks] = useState<Work[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [averageRatings, setAverageRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
+    fetchCategories();
     fetchLatestWorks();
-  }, []);
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (latestWorks.length > 0) {
@@ -24,15 +27,35 @@ const Home: React.FC = () => {
     }
   }, [latestWorks]);
 
-  const fetchLatestWorks = async () => {
+  const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name_en');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchLatestWorks = async () => {
+    try {
+      let query = supabase
         .from('works')
         .select(`
           *,
           category:categories(*),
           images:work_images!work_images_work_id_fkey(*)
-        `)
+        `);
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category_id', selectedCategory);
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(6);
 
@@ -132,19 +155,36 @@ const Home: React.FC = () => {
           {t('home.subtitle')}
         </motion.p>
 
-        {/* Animated Icons */}
-        <div className="flex justify-center space-x-8 mt-8">
-          {['✈️', '🚀', '🏎️', '⚽', '🎨'].map((emoji, index) => (
-            <motion.div
-              key={emoji}
+        {/* Category Filter Emojis */}
+        <div className="flex justify-center flex-wrap gap-4 mt-8">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            whileHover={{ scale: 1.3, rotate: 15 }}
+            onClick={() => setSelectedCategory('all')}
+            className={`text-4xl cursor-pointer transition-opacity ${
+              selectedCategory === 'all' ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+            }`}
+            title={t('gallery.allCategories')}
+          >
+            🎨
+          </motion.button>
+          {categories.map((category, index) => (
+            <motion.button
+              key={category.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + index * 0.1 }}
+              transition={{ delay: 0.5 + (index + 1) * 0.1 }}
               whileHover={{ scale: 1.3, rotate: 15 }}
-              className="text-4xl cursor-pointer"
+              onClick={() => setSelectedCategory(category.id)}
+              className={`text-4xl cursor-pointer transition-opacity ${
+                selectedCategory === category.id ? 'opacity-100' : 'opacity-50 hover:opacity-75'
+              }`}
+              title={i18n.language === 'uk' ? category.name_uk : category.name_en}
             >
-              {emoji}
-            </motion.div>
+              {category.icon}
+            </motion.button>
           ))}
         </div>
       </motion.section>
