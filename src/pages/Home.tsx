@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Eye, Star, MessageCircle } from 'lucide-react';
+import { ArrowRight, Eye, Star, MessageCircle, Sparkles } from 'lucide-react';
 import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -136,21 +137,36 @@ const Home: React.FC = () => {
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-12"
+        className="text-center py-12 relative"
       >
-        <motion.h1
-          initial={{ scale: 0.5 }}
-          animate={{ scale: 1 }}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", bounce: 0.4 }}
-          className="text-5xl sm:text-7xl font-racing font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-700 mb-4"
+          className="relative inline-block"
         >
-          {t('home.title')}
-        </motion.h1>
+          <h1 className="text-5xl sm:text-7xl font-racing font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-700 mb-4 relative z-10">
+            {t('home.title')}
+          </h1>
+          <motion.div
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800 blur-3xl -z-10"
+          />
+          <Sparkles className="absolute -top-4 -right-8 text-red-500 animate-pulse" size={24} />
+        </motion.div>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-xl text-gray-300 font-space"
+          className="text-xl text-gray-300 font-space max-w-2xl mx-auto"
         >
           {t('home.subtitle')}
         </motion.p>
@@ -205,8 +221,8 @@ const Home: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SkeletonLoader variant="card" count={6} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -216,37 +232,41 @@ const Home: React.FC = () => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -8, scale: 1.02 }}
               >
                 <Link to={`/work/${work.id}`}>
-                  <div className="bg-gray-900/50 backdrop-blur rounded-lg overflow-hidden border border-red-900/30 hover:border-red-600/50 transition-all duration-300 group">
+                  <div className="relative bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group shadow-lg hover:shadow-red-900/30">
+                    {/* Gradient overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-red-600/0 to-red-900/0 group-hover:from-red-600/5 group-hover:via-red-600/3 group-hover:to-red-900/5 transition-all duration-300 pointer-events-none z-10" />
+
                     <div className="aspect-w-16 aspect-h-12 bg-gray-800 relative overflow-hidden">
                       <WorkImageCarousel workId={work.id} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors">
+
+                    <div className="p-5 relative z-10">
+                      <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg">
                         {i18n.language === 'uk' ? work.title_uk : work.title_en}
                       </h3>
                       {work.category && (
-                        <span className="inline-block px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded-full mb-2">
+                        <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
                           {work.category.icon} {i18n.language === 'uk' ? work.category.name_uk : work.category.name_en}
                         </span>
                       )}
                       <div className="flex items-center justify-between text-gray-400 text-sm">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-1">
-                            <Eye size={14} />
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                            <Eye size={15} className="group-hover:scale-110 transition-transform" />
                             <span>{work.views || 0}</span>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle size={14} />
+                          <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                            <MessageCircle size={15} className="group-hover:scale-110 transition-transform" />
                             <span>{commentCounts[work.id] || 0}</span>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Star size={14} className="text-yellow-500" />
-                          <span>{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
+                        <div className="flex items-center space-x-1.5 group-hover:text-yellow-400 transition-colors">
+                          <Star size={15} className="text-yellow-500 group-hover:scale-110 transition-transform" fill={averageRatings[work.id] ? 'currentColor' : 'none'} />
+                          <span className="font-medium">{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
                         </div>
                       </div>
                     </div>

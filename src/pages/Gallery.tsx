@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Filter, Eye, Star, Grid, List, MessageCircle } from 'lucide-react';
 import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const Gallery: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -183,7 +184,7 @@ const Gallery: React.FC = () => {
       </motion.div>
 
       {/* Filters and Controls */}
-      <div className="bg-gray-900/50 backdrop-blur rounded-lg p-4 border border-red-900/30">
+      <div className="bg-gray-900/40 backdrop-blur-xl rounded-xl p-6 border border-red-900/30 shadow-lg shadow-red-900/10">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Category Filter */}
           <div className="flex-1">
@@ -270,9 +271,15 @@ const Gallery: React.FC = () => {
 
       {/* Works Grid/List */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
-        </div>
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <SkeletonLoader variant="card" count={8} />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <SkeletonLoader variant="list" count={5} />
+          </div>
+        )
       ) : (
         <>
           {viewMode === 'grid' ? (
@@ -283,37 +290,41 @@ const Gallery: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ y: -5 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
                 >
                   <Link to={`/work/${work.id}`}>
-                    <div className="bg-gray-900/50 backdrop-blur rounded-lg overflow-hidden border border-red-900/30 hover:border-red-600/50 transition-all duration-300 group">
+                    <div className="relative bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group shadow-lg hover:shadow-red-900/30">
+                      {/* Gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-red-600/0 to-red-900/0 group-hover:from-red-600/5 group-hover:via-red-600/3 group-hover:to-red-900/5 transition-all duration-300 pointer-events-none z-10" />
+
                       <div className="aspect-w-16 aspect-h-12 bg-gray-800 relative overflow-hidden">
                         <WorkImageCarousel workId={work.id} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors">
+
+                      <div className="p-5 relative z-10">
+                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg">
                           {getLocalizedTitle(work)}
                         </h3>
                         {work.category && (
-                          <span className="inline-block px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded-full mb-2">
+                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
                             {work.category.icon} {getLocalizedName(work.category)}
                           </span>
                         )}
                         <div className="flex items-center justify-between text-gray-400 text-sm">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-1">
-                              <Eye size={14} />
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                              <Eye size={15} className="group-hover:scale-110 transition-transform" />
                               <span>{work.views || 0}</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <MessageCircle size={14} />
+                            <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                              <MessageCircle size={15} className="group-hover:scale-110 transition-transform" />
                               <span>{commentCounts[work.id] || 0}</span>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Star size={14} className="text-yellow-500" />
-                            <span>{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
+                          <div className="flex items-center space-x-1.5 group-hover:text-yellow-400 transition-colors">
+                            <Star size={15} className="text-yellow-500 group-hover:scale-110 transition-transform" fill={averageRatings[work.id] ? 'currentColor' : 'none'} />
+                            <span className="font-medium">{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
                           </div>
                         </div>
                       </div>
@@ -330,37 +341,38 @@ const Gallery: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
+                  whileHover={{ x: 4 }}
                 >
                   <Link to={`/work/${work.id}`}>
-                    <div className="bg-gray-900/50 backdrop-blur rounded-lg overflow-hidden border border-red-900/30 hover:border-red-600/50 transition-all duration-300 group p-4 flex gap-4">
+                    <div className="bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group p-5 flex gap-5 shadow-lg hover:shadow-red-900/20">
                       <img
                         src={work.thumbnail_url || work.image_url || '/placeholder.jpg'}
                         alt={getLocalizedTitle(work)}
-                        className="w-32 h-24 object-cover rounded"
+                        className="w-36 h-28 object-cover rounded-lg flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg truncate">
                           {getLocalizedTitle(work)}
                         </h3>
                         {work.category && (
-                          <span className="inline-block px-2 py-1 bg-red-600/20 text-red-400 text-xs rounded-full mb-2">
+                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
                             {work.category.icon} {getLocalizedName(work.category)}
                           </span>
                         )}
-                        <p className="text-gray-400 text-sm mb-2 line-clamp-2">
+                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
                           {i18n.language === 'uk' ? work.description_uk : work.description_en}
                         </p>
-                        <div className="flex items-center gap-4 text-gray-400 text-sm">
-                          <div className="flex items-center space-x-1">
-                            <Eye size={14} />
+                        <div className="flex items-center gap-5 text-gray-400 text-sm">
+                          <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                            <Eye size={15} />
                             <span>{work.views || 0} {t('work.views')}</span>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle size={14} />
+                          <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
+                            <MessageCircle size={15} />
                             <span>{commentCounts[work.id] || 0}</span>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            <Star size={14} className="text-yellow-500" />
+                          <div className="flex items-center space-x-1.5 group-hover:text-yellow-400 transition-colors">
+                            <Star size={15} className="text-yellow-500" fill={averageRatings[work.id] ? 'currentColor' : 'none'} />
                             <span>{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
                           </div>
                         </div>
