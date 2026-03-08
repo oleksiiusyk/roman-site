@@ -52,7 +52,7 @@ Run the SQL from `supabase-schema.sql` in the Supabase SQL editor to create the 
    - `/work/:id` - Individual work detail page
    - `/admin/*` - Admin panel (lazy loaded)
 
-3. **Admin Authentication:** Simple password-based auth (password: `roman2024`) stored in localStorage. Not production-secure but sufficient for this use case.
+3. **Admin Authentication:** Secured using Supabase Auth with email/password authentication. Auth state is managed via React Context (`src/contexts/AuthContext.tsx`).
 
 4. **Internationalization:**
    - Configuration in `src/i18n/config.ts`
@@ -70,9 +70,10 @@ The `src/lib/supabase.ts` file:
 Database structure:
 - **categories:** Artwork/collection categories with bilingual names and emoji icons
 - **works:** Individual artworks/items with bilingual content, category relation, view counts
+- **work_images:** Multiple images per work with primary image designation and display order
 - **comments:** User comments on works
 - **ratings:** 1-5 star ratings (unique per work/user_id combination)
-- **admin_users:** Admin authentication (currently unused, using simple password check instead)
+- **admin_users:** Admin authentication using Supabase Auth
 
 Row Level Security is enabled with policies for public read access and public write access for comments/ratings.
 
@@ -161,8 +162,35 @@ All database tables use **RLS policies** to protect data:
 - Actual database password is never exposed to the client
 - Supabase automatically handles secure connections
 
+## Recent Features & Updates
+
+### Gallery & Home Pages
+- **Comment Counts:** Display the number of comments under each work item (uses `MessageCircle` icon from Lucide)
+- **Real Ratings:** Star ratings now show actual average ratings from the database instead of hardcoded 4.5
+  - Fetches ratings from Supabase `ratings` table
+  - Calculates average per work
+  - Shows `—` when no ratings exist
+
+### Admin Panel Features
+- **Clickable Rows:** Entire work rows are clickable to edit (not just the pencil icon)
+- **Image Preview Modal:** Click on any thumbnail or gallery image to view a large preview
+  - Works in both the work list table and inside edit forms
+  - Fullscreen modal with dark backdrop and blur
+  - Close by clicking outside or pressing X button
+  - Smooth animations using Framer Motion
+- **Multi-Image Support:** Works now support multiple images via `work_images` table
+  - Primary image designation
+  - Display order management
+  - Image upload via `ImageUploader` component
+
+### Image Management
+- **ImageUploader Component:** (`src/components/ImageUploader.tsx`)
+  - Direct upload to Supabase Storage
+  - URL input fallback for external images
+  - Automatic URL generation after upload
+  - Used in admin panel for adding work images
+
 ## Known Limitations
 
-- No image upload functionality yet (uses external image URLs via Imgur/Cloudinary/Supabase Storage)
 - `.font-racing` class is referenced but font may not be defined in CSS
 - User ratings use session ID/IP hash stored client-side (can be manipulated)

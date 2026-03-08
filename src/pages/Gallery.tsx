@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Filter, Eye, Star, Grid, List } from 'lucide-react';
+import { Filter, Eye, Star, Grid, List, MessageCircle } from 'lucide-react';
 import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
 
@@ -14,11 +14,20 @@ const Gallery: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [averageRatings, setAverageRatings] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchCategories();
     fetchWorks();
   }, [selectedCategory, sortBy]);
+
+  useEffect(() => {
+    if (works.length > 0) {
+      fetchCommentCounts();
+      fetchAverageRatings();
+    }
+  }, [works]);
 
   const fetchCategories = async () => {
     try {
@@ -71,7 +80,7 @@ const Gallery: React.FC = () => {
 
       // Set image_url from primary work_image if exists
       const worksWithImages = data?.map(work => {
-        const primaryImage = work.images?.find((img: any) => img.is_primary);
+        const primaryImage = work.images?.find((img: { is_primary: boolean }) => img.is_primary);
         return {
           ...work,
           image_url: primaryImage?.image_url || work.image_url,
@@ -93,6 +102,57 @@ const Gallery: React.FC = () => {
 
   const getLocalizedTitle = (work: Work) => {
     return i18n.language === 'uk' ? work.title_uk : work.title_en;
+  };
+
+  const fetchCommentCounts = async () => {
+    try {
+      const workIds = works.map(w => w.id);
+      const { data, error } = await supabase
+        .from('comments')
+        .select('work_id')
+        .in('work_id', workIds);
+
+      if (error) throw error;
+
+      const counts: Record<string, number> = {};
+      data?.forEach((comment) => {
+        counts[comment.work_id] = (counts[comment.work_id] || 0) + 1;
+      });
+
+      setCommentCounts(counts);
+    } catch (error) {
+      console.error('Error fetching comment counts:', error);
+    }
+  };
+
+  const fetchAverageRatings = async () => {
+    try {
+      const workIds = works.map(w => w.id);
+      const { data, error } = await supabase
+        .from('ratings')
+        .select('work_id, rating')
+        .in('work_id', workIds);
+
+      if (error) throw error;
+
+      const ratings: Record<string, number[]> = {};
+      data?.forEach((rating) => {
+        if (!ratings[rating.work_id]) {
+          ratings[rating.work_id] = [];
+        }
+        ratings[rating.work_id].push(rating.rating);
+      });
+
+      const averages: Record<string, number> = {};
+      Object.entries(ratings).forEach(([workId, workRatings]) => {
+        const sum = workRatings.reduce((acc, r) => acc + r, 0);
+        averages[workId] = sum / workRatings.length;
+      });
+
+      setAverageRatings(averages);
+    } catch (error) {
+      console.error('Error fetching average ratings:', error);
+    }
   };
 
   return (
@@ -226,13 +286,19 @@ const Gallery: React.FC = () => {
                           </span>
                         )}
                         <div className="flex items-center justify-between text-gray-400 text-sm">
-                          <div className="flex items-center space-x-1">
-                            <Eye size={14} />
-                            <span>{work.views || 0}</span>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-1">
+                              <Eye size={14} />
+                              <span>{work.views || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <MessageCircle size={14} />
+                              <span>{commentCounts[work.id] || 0}</span>
+                            </div>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Star size={14} className="text-yellow-500" />
-                            <span>4.5</span>
+                            <span>{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
                           </div>
                         </div>
                       </div>
@@ -275,8 +341,12 @@ const Gallery: React.FC = () => {
                             <span>{work.views || 0} {t('work.views')}</span>
                           </div>
                           <div className="flex items-center space-x-1">
+                            <MessageCircle size={14} />
+                            <span>{commentCounts[work.id] || 0}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
                             <Star size={14} className="text-yellow-500" />
-                            <span>4.5</span>
+                            <span>{averageRatings[work.id] ? averageRatings[work.id].toFixed(1) : '—'}</span>
                           </div>
                         </div>
                       </div>

@@ -98,8 +98,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
 
       toast.success('Image uploaded successfully!');
       onImageAdd(publicUrl);
-    } catch (error) {
-      console.error('Error processing file:', error);
+    } catch (err) {
+      console.error('Error processing file:', err);
       toast.error('Failed to upload image');
     } finally {
       setUploading(false);

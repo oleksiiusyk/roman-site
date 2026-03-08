@@ -61,7 +61,8 @@
     "dateCreated": "Date Created",
     "save": "Save",
     "cancel": "Cancel",
-    "confirmDelete": "Are you sure you want to delete this work?"
+    "confirmDelete": "Are you sure you want to delete this work?",
+    "confirmDeleteImage": "Are you sure you want to delete this image?"
   },
   "categories": {
     "drawings": "Drawings",

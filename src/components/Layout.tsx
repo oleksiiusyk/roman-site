@@ -142,7 +142,9 @@ const Layout: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+      <main className={`relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 ${
+        location.pathname.startsWith('/admin') ? 'max-w-[1920px]' : 'max-w-7xl'
+      }`}>
         <Outlet />
       </main>
 

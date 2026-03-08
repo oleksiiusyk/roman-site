@@ -92,6 +92,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     date_created: work?.date_created || new Date().toISOString().split('T')[0],
   });
   const [submitting, setSubmitting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories();
@@ -171,9 +172,12 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
   };
 
   const removeImage = async (imageId: string) => {
+    if (!window.confirm(t('admin.confirmDeleteImage'))) return;
+
     if (imageId.startsWith('temp-')) {
       // Remove from temporary state
       setImages(images.filter(img => img.id !== imageId));
+      toast.success('Image removed!');
     } else {
       // Delete from database
       const { error } = await supabase
@@ -187,6 +191,8 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
       }
       toast.success('Image removed!');
       fetchImages();
+      // Refresh parent works list to show updated thumbnail
+      if (onImageUpdate) onImageUpdate();
     }
   };
 
@@ -282,6 +288,37 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
   };
 
   return (
+    <>
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="relative max-w-6xl max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+          </motion.div>
+        </motion.div>
+      )}
+
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -395,7 +432,8 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
                 <img
                   src={image.image_url}
                   alt="Work image"
-                  className="w-full h-32 object-cover"
+                  className="w-full h-32 object-cover cursor-pointer"
+                  onClick={() => setPreviewImage(image.image_url)}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/placeholder.jpg';
                   }}
@@ -458,6 +496,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         </button>
       </div>
     </form>
+    </>
   );
 };
 
@@ -594,6 +633,7 @@ const AdminDashboard: React.FC = () => {
   const [editingWork, setEditingWork] = useState<Work | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWorks();
@@ -616,7 +656,7 @@ const AdminDashboard: React.FC = () => {
 
       // Set image_url from primary work_image if exists
       const worksWithImages = data?.map(work => {
-        const primaryImage = work.images?.find((img: any) => img.is_primary);
+        const primaryImage = work.images?.find((img: { is_primary: boolean }) => img.is_primary);
         return {
           ...work,
           image_url: primaryImage?.image_url || work.image_url,
@@ -760,19 +800,50 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-racing font-bold text-white">
-          {t('admin.title')}
-        </h2>
-        <button
-          onClick={handleLogout}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+    <>
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setPreviewImage(null)}
         >
-          <LogOut size={18} />
-          <span>{t('admin.logout')}</span>
-        </button>
-      </div>
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="relative max-w-6xl max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+          </motion.div>
+        </motion.div>
+      )}
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-racing font-bold text-white">
+            {t('admin.title')}
+          </h2>
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          >
+            <LogOut size={18} />
+            <span>{t('admin.logout')}</span>
+          </button>
+        </div>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-gray-700">
@@ -845,12 +916,17 @@ const AdminDashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-800">
                   {works.map((work) => (
-                    <tr key={work.id} className="hover:bg-gray-800/30 transition-colors">
-                      <td className="px-4 py-3">
+                    <tr
+                      key={work.id}
+                      onClick={() => setEditingWork(work)}
+                      className="hover:bg-gray-800/30 transition-colors cursor-pointer"
+                    >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <img
                           src={work.thumbnail_url || work.image_url || '/placeholder.jpg'}
                           alt={work.title_en}
-                          className="w-16 h-12 object-cover rounded"
+                          className="w-16 h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => setPreviewImage(work.image_url || work.thumbnail_url || '/placeholder.jpg')}
                         />
                       </td>
                       <td className="px-4 py-3 text-white">
@@ -868,7 +944,7 @@ const AdminDashboard: React.FC = () => {
                         {work.views || 0}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => setEditingWork(work)}
                             className="p-1 text-blue-400 hover:text-blue-300 transition-colors"
@@ -949,7 +1025,8 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
@@ -969,7 +1046,11 @@ const Admin: React.FC = () => {
     return <AdminLogin />;
   }
 
-  return <AdminDashboard />;
+  return (
+    <div className="w-full max-w-[1920px] mx-auto">
+      <AdminDashboard />
+    </div>
+  );
 };
 
 export default Admin;
