@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { LogOut, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 import { supabase, type Work, type Category, type WorkImage } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import toast from 'react-hot-toast';
 import ImageUploader from '../components/ImageUploader';
 
@@ -12,6 +13,8 @@ import ImageUploader from '../components/ImageUploader';
 const AdminLogin: React.FC = () => {
   const { t } = useTranslation();
   const { signIn } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,9 +39,11 @@ const AdminLogin: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gray-900/50 backdrop-blur rounded-lg p-8 border border-red-900/30 w-full max-w-md"
+        className={`backdrop-blur rounded-lg p-8 border w-full max-w-md ${
+          isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+        }`}
       >
-        <h2 className="text-2xl font-racing font-bold text-white mb-6 text-center">
+        <h2 className={`text-2xl font-racing font-bold mb-6 text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {t('admin.login')}
         </h2>
         <form onSubmit={handleLogin} className="space-y-4">
@@ -48,7 +53,9 @@ const AdminLogin: React.FC = () => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${
+                isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+              }`}
               required
             />
           </div>
@@ -58,7 +65,9 @@ const AdminLogin: React.FC = () => {
               placeholder={t('admin.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${
+                isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+              }`}
               required
             />
           </div>
@@ -78,6 +87,8 @@ const AdminLogin: React.FC = () => {
 // Work form component
 const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void; onImageUpdate?: () => void }> = ({ work, onSave, onCancel, onImageUpdate }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<WorkImage[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
@@ -93,6 +104,11 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
   });
   const [submitting, setSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  const inputCls = isDark
+    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400';
+  const labelCls = isDark ? 'text-gray-400' : 'text-gray-500';
 
   useEffect(() => {
     fetchCategories();
@@ -322,26 +338,26 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.workTitle')} (EN)
           </label>
           <input
             type="text"
             value={formData.title_en}
             onChange={(e) => setFormData({ ...formData, title_en: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.workTitle')} (UK)
           </label>
           <input
             type="text"
             value={formData.title_uk}
             onChange={(e) => setFormData({ ...formData, title_uk: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           />
         </div>
@@ -349,24 +365,24 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.workDescription')} (EN)
           </label>
           <textarea
             value={formData.description_en}
             onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             rows={3}
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.workDescription')} (UK)
           </label>
           <textarea
             value={formData.description_uk}
             onChange={(e) => setFormData({ ...formData, description_uk: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             rows={3}
           />
         </div>
@@ -374,13 +390,13 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.category')}
           </label>
           <select
             value={formData.category_id}
             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           >
             <option value="">Select category</option>
@@ -392,14 +408,14 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             {t('admin.dateCreated')}
           </label>
           <input
             type="date"
             value={formData.date_created}
             onChange={(e) => setFormData({ ...formData, date_created: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           />
         </div>
@@ -407,14 +423,13 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
       {/* Image Gallery Management */}
       <div className="space-y-4">
-        <label className="block text-sm font-medium text-gray-400">
+        <label className={`block text-sm font-medium ${labelCls}`}>
           Image Gallery ({images.length} images)
         </label>
 
         {/* Image Uploader */}
         <ImageUploader
           onImageAdd={(imageUrl) => {
-            // Directly add the image with the URL
             addImage(imageUrl);
           }}
         />
@@ -426,13 +441,13 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
               <div
                 key={image.id}
                 className={`relative group border-2 rounded-lg overflow-hidden ${
-                  image.is_primary ? 'border-red-500' : 'border-gray-700'
+                  image.is_primary ? 'border-red-500' : isDark ? 'border-gray-700' : 'border-gray-300'
                 }`}
               >
                 <img
                   src={image.image_url}
                   alt="Work image"
-                  className="w-full h-32 object-cover cursor-pointer"
+                  className="w-full h-32 object-cover cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => setPreviewImage(image.image_url)}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/placeholder.jpg';
@@ -468,7 +483,9 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         )}
 
         {images.length === 0 && (
-          <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-700 rounded-lg">
+          <div className={`text-center py-8 border-2 border-dashed rounded-lg ${
+            isDark ? 'text-gray-500 border-gray-700' : 'text-gray-400 border-gray-300'
+          }`}>
             No images added yet. Add at least one image above.
           </div>
         )}
@@ -489,7 +506,9 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+            isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+          }`}
         >
           <X size={18} />
           <span>{t('admin.cancel')}</span>
@@ -503,6 +522,8 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 // Category form component
 const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel: () => void }> = ({ category, onSave, onCancel }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [formData, setFormData] = useState({
     name_en: category?.name_en || '',
     name_uk: category?.name_uk || '',
@@ -510,6 +531,11 @@ const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel
     icon: category?.icon || '',
   });
   const [submitting, setSubmitting] = useState(false);
+
+  const inputCls = isDark
+    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400';
+  const labelCls = isDark ? 'text-gray-400' : 'text-gray-500';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -547,26 +573,26 @@ const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             Category Name (EN)
           </label>
           <input
             type="text"
             value={formData.name_en}
             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             Category Name (UK)
           </label>
           <input
             type="text"
             value={formData.name_uk}
             onChange={(e) => setFormData({ ...formData, name_uk: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             required
           />
         </div>
@@ -574,27 +600,27 @@ const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             Slug
           </label>
           <input
             type="text"
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             placeholder="category-slug"
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">
+          <label className={`block text-sm font-medium mb-2 ${labelCls}`}>
             Icon (Emoji)
           </label>
           <input
             type="text"
             value={formData.icon}
             onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${inputCls}`}
             placeholder="✈️"
           />
         </div>
@@ -612,7 +638,9 @@ const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+            isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+          }`}
         >
           <X size={18} />
           <span>{t('admin.cancel')}</span>
@@ -626,6 +654,8 @@ const CategoryForm: React.FC<{ category?: Category; onSave: () => void; onCancel
 const AdminDashboard: React.FC = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'works' | 'categories'>('works');
   const [works, setWorks] = useState<Work[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -737,7 +767,7 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-racing font-bold text-white">
+          <h2 className={`text-2xl font-racing font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {editingWork ? t('admin.editWork') : t('admin.addWork')}
           </h2>
           <button
@@ -745,12 +775,14 @@ const AdminDashboard: React.FC = () => {
               setEditingWork(null);
               setIsAddingNew(false);
             }}
-            className="text-gray-400 hover:text-white"
+            className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}
           >
             <X size={24} />
           </button>
         </div>
-        <div className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-red-900/30">
+        <div className={`backdrop-blur rounded-lg p-6 border ${
+          isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+        }`}>
           <WorkForm
             work={editingWork || undefined}
             onSave={() => {
@@ -775,17 +807,19 @@ const AdminDashboard: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-racing font-bold text-white">
+          <h2 className={`text-2xl font-racing font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {editingCategory.id ? 'Edit Category' : 'Add Category'}
           </h2>
           <button
             onClick={() => setEditingCategory(null)}
-            className="text-gray-400 hover:text-white"
+            className={isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}
           >
             <X size={24} />
           </button>
         </div>
-        <div className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-red-900/30">
+        <div className={`backdrop-blur rounded-lg p-6 border ${
+          isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+        }`}>
           <CategoryForm
             category={editingCategory.id ? editingCategory : undefined}
             onSave={() => {
@@ -833,12 +867,14 @@ const AdminDashboard: React.FC = () => {
 
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-racing font-bold text-white">
+          <h2 className={`text-2xl font-racing font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('admin.title')}
           </h2>
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+            }`}
           >
             <LogOut size={18} />
             <span>{t('admin.logout')}</span>
@@ -846,13 +882,13 @@ const AdminDashboard: React.FC = () => {
         </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-700">
+      <div className={`flex gap-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-300'}`}>
         <button
           onClick={() => setActiveTab('works')}
           className={`px-6 py-3 font-medium transition-colors border-b-2 ${
             activeTab === 'works'
               ? 'text-red-500 border-red-500'
-              : 'text-gray-400 border-transparent hover:text-gray-300'
+              : isDark ? 'text-gray-400 border-transparent hover:text-gray-300' : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
           Works
@@ -862,7 +898,7 @@ const AdminDashboard: React.FC = () => {
           className={`px-6 py-3 font-medium transition-colors border-b-2 ${
             activeTab === 'categories'
               ? 'text-red-500 border-red-500'
-              : 'text-gray-400 border-transparent hover:text-gray-300'
+              : isDark ? 'text-gray-400 border-transparent hover:text-gray-300' : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
           Categories
@@ -891,35 +927,37 @@ const AdminDashboard: React.FC = () => {
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
         </div>
       ) : (
-        <div className="bg-gray-900/50 backdrop-blur rounded-lg border border-red-900/30 overflow-hidden">
+        <div className={`backdrop-blur rounded-lg border overflow-hidden ${
+          isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+        }`}>
           {activeTab === 'works' ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-800/50">
+                <thead className={isDark ? 'bg-gray-800/50' : 'bg-gray-50'}>
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Image
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Title
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Category
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Views
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className={`divide-y ${isDark ? 'divide-gray-800' : 'divide-gray-200'}`}>
                   {works.map((work) => (
                     <tr
                       key={work.id}
                       onClick={() => setEditingWork(work)}
-                      className="hover:bg-gray-800/30 transition-colors cursor-pointer"
+                      className={`transition-colors cursor-pointer ${isDark ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50'}`}
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <img
@@ -929,10 +967,10 @@ const AdminDashboard: React.FC = () => {
                           onClick={() => setPreviewImage(work.image_url || work.thumbnail_url || '/placeholder.jpg')}
                         />
                       </td>
-                      <td className="px-4 py-3 text-white">
+                      <td className={`px-4 py-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {i18n.language === 'uk' ? work.title_uk : work.title_en}
                       </td>
-                      <td className="px-4 py-3 text-gray-400">
+                      <td className={`px-4 py-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         {work.category && (
                           <span className="inline-flex items-center space-x-1">
                             <span>{work.category.icon}</span>
@@ -940,7 +978,7 @@ const AdminDashboard: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-gray-400">
+                      <td className={`px-4 py-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         {work.views || 0}
                       </td>
                       <td className="px-4 py-3">
@@ -967,38 +1005,38 @@ const AdminDashboard: React.FC = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-800/50">
+                <thead className={isDark ? 'bg-gray-800/50' : 'bg-gray-50'}>
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Icon
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Name (EN)
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Name (UK)
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Slug
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className={`divide-y ${isDark ? 'divide-gray-800' : 'divide-gray-200'}`}>
                   {categories.map((category) => (
-                    <tr key={category.id} className="hover:bg-gray-800/30 transition-colors">
+                    <tr key={category.id} className={`transition-colors ${isDark ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50'}`}>
                       <td className="px-4 py-3 text-2xl">
                         {category.icon}
                       </td>
-                      <td className="px-4 py-3 text-white">
+                      <td className={`px-4 py-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {category.name_en}
                       </td>
-                      <td className="px-4 py-3 text-white">
+                      <td className={`px-4 py-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {category.name_uk}
                       </td>
-                      <td className="px-4 py-3 text-gray-400">
+                      <td className={`px-4 py-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         {category.slug}
                       </td>
                       <td className="px-4 py-3">

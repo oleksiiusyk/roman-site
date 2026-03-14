@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, type WorkImage } from '../lib/supabase';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface WorkImageCarouselProps {
   workId: string;
@@ -9,6 +10,7 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
   const [images, setImages] = useState<WorkImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -42,9 +44,11 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
 
   if (images.length === 0) return null;
 
+  const isDark = theme === 'dark';
+
   return (
     <div
-      className="relative w-full h-48 bg-gray-800"
+      className={`relative w-full h-48 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);

@@ -5,6 +5,7 @@ import './i18n/config';
 
 // Contexts
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // Components
 import Layout from './components/Layout';
@@ -18,21 +19,30 @@ import WorkDetail from './pages/WorkDetail';
 // Lazy load admin panel
 const Admin = React.lazy(() => import('./pages/Admin'));
 
+const ThemedToaster: React.FC = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        style: {
+          background: isDark ? '#1f2937' : '#ffffff',
+          color: isDark ? '#fff' : '#1f2937',
+          border: `1px solid ${isDark ? '#dc2626' : '#fca5a5'}`,
+        },
+        duration: 3000,
+      }}
+    />
+  );
+};
+
 function App() {
   return (
+    <ThemeProvider>
     <Router>
       <AuthProvider>
-        <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: '#1f2937',
-            color: '#fff',
-            border: '1px solid #dc2626',
-          },
-          duration: 3000,
-        }}
-      />
+        <ThemedToaster />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
@@ -55,6 +65,7 @@ function App() {
       </Routes>
       </AuthProvider>
     </Router>
+    </ThemeProvider>
   );
 }
 

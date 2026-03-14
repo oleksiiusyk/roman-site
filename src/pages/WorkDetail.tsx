@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, Star, Send, Calendar } from 'lucide-react';
 import { supabase, type Work, type Comment, type Rating, type WorkImage } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { useTheme } from '../contexts/ThemeContext';
 
 const WorkDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
   const [work, setWork] = useState<Work | null>(null);
   const [images, setImages] = useState<WorkImage[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -20,6 +22,8 @@ const WorkDetail: React.FC = () => {
   const [averageRating, setAverageRating] = useState<number>(0);
   const [newComment, setNewComment] = useState({ name: '', content: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     if (id) {
@@ -178,7 +182,7 @@ const WorkDetail: React.FC = () => {
 
   if (!work) {
     return (
-      <div className="text-center py-12 text-gray-400">
+      <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
         <p>Work not found</p>
       </div>
     );
@@ -196,7 +200,7 @@ const WorkDetail: React.FC = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         onClick={() => navigate(-1)}
-        className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+        className={`flex items-center space-x-2 transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
       >
         <ArrowLeft size={20} />
         <span>{t('common.back')}</span>
@@ -212,7 +216,9 @@ const WorkDetail: React.FC = () => {
             className="space-y-4"
           >
             {/* Main Image */}
-            <div className="bg-gray-900/50 backdrop-blur rounded-lg overflow-hidden border border-red-900/30">
+            <div className={`backdrop-blur rounded-lg overflow-hidden border ${
+              isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+            }`}>
               <img
                 src={images.length > 0 ? images[selectedImageIndex]?.image_url : work.image_url || '/placeholder.jpg'}
                 alt={title}
@@ -230,7 +236,7 @@ const WorkDetail: React.FC = () => {
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                       index === selectedImageIndex
                         ? 'border-red-500 ring-2 ring-red-500/50'
-                        : 'border-gray-700 hover:border-gray-500'
+                        : isDark ? 'border-gray-700 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
                     }`}
                   >
                     <img
@@ -254,9 +260,11 @@ const WorkDetail: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-red-900/30"
+            className={`backdrop-blur rounded-lg p-6 border transition-colors duration-300 ${
+              isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+            }`}
           >
-            <h3 className="text-xl font-racing font-bold text-white mb-4">
+            <h3 className={`text-xl font-racing font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('work.comments')} ({comments.length})
             </h3>
 
@@ -267,14 +275,22 @@ const WorkDetail: React.FC = () => {
                 placeholder={t('work.yourName')}
                 value={newComment.name}
                 onChange={(e) => setNewComment({ ...newComment, name: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 transition-colors ${
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                }`}
                 maxLength={50}
               />
               <textarea
                 placeholder={t('work.yourComment')}
                 value={newComment.content}
                 onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500 resize-none"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 resize-none transition-colors ${
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400'
+                    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+                }`}
                 rows={3}
                 maxLength={500}
               />
@@ -291,18 +307,18 @@ const WorkDetail: React.FC = () => {
             {/* Comments List */}
             <div className="space-y-4">
               {comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-800/50 rounded-lg p-4">
+                <div key={comment.id} className={`rounded-lg p-4 ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-red-400">{comment.author_name}</span>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-gray-300">{comment.content}</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>{comment.content}</p>
                 </div>
               ))}
               {comments.length === 0 && (
-                <p className="text-gray-500 text-center py-4">
+                <p className={`text-center py-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                   {t('work.leaveComment')}
                 </p>
               )}
@@ -316,21 +332,25 @@ const WorkDetail: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-red-900/30"
+            className={`backdrop-blur rounded-lg p-6 border transition-colors duration-300 ${
+              isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+            }`}
           >
-            <h1 className="text-2xl font-racing font-bold text-white mb-2">
+            <h1 className={`text-2xl font-racing font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {title}
             </h1>
             {work.category && (
-              <span className="inline-block px-3 py-1 bg-red-600/20 text-red-400 rounded-full mb-4">
+              <span className={`inline-block px-3 py-1 rounded-full mb-4 ${
+                isDark ? 'bg-red-600/20 text-red-400' : 'bg-red-50 text-red-600'
+              }`}>
                 {work.category.icon} {categoryName}
               </span>
             )}
             {description && (
-              <p className="text-gray-300 mb-4">{description}</p>
+              <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{description}</p>
             )}
 
-            <div className="space-y-3 text-gray-400">
+            <div className={`space-y-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Eye size={18} />
@@ -352,9 +372,11 @@ const WorkDetail: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-red-900/30"
+            className={`backdrop-blur rounded-lg p-6 border transition-colors duration-300 ${
+              isDark ? 'bg-gray-900/50 border-red-900/30' : 'bg-white/70 border-red-200/40'
+            }`}
           >
-            <h3 className="text-lg font-racing font-bold text-white mb-4">
+            <h3 className={`text-lg font-racing font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('work.rating')}
             </h3>
 
@@ -362,13 +384,13 @@ const WorkDetail: React.FC = () => {
               <div className="text-3xl font-bold text-yellow-400">
                 {averageRating.toFixed(1)}
               </div>
-              <div className="text-sm text-gray-400">
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 ({ratings.length} ratings)
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm text-gray-400">{t('work.rateWork')}:</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('work.rateWork')}:</p>
               <div className="flex justify-center space-x-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -381,7 +403,7 @@ const WorkDetail: React.FC = () => {
                       className={`${
                         star <= userRating
                           ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-gray-600 hover:text-yellow-400'
+                          : isDark ? 'text-gray-600 hover:text-yellow-400' : 'text-gray-300 hover:text-yellow-400'
                       } transition-colors`}
                     />
                   </button>

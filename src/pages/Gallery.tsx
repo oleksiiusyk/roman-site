@@ -6,9 +6,11 @@ import { Filter, Eye, Star, Grid, List, MessageCircle } from 'lucide-react';
 import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Gallery: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
   const [works, setWorks] = useState<Work[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,8 @@ const Gallery: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [averageRatings, setAverageRatings] = useState<Record<string, number>>({});
+
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     fetchCategories();
@@ -82,7 +86,6 @@ const Gallery: React.FC = () => {
           query = query.order('views', { ascending: false });
           break;
         case 'topRated':
-          // For now, just use views as a proxy for rating
           query = query.order('views', { ascending: false });
           break;
         default: // newest
@@ -178,17 +181,21 @@ const Gallery: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h1 className="text-4xl font-racing font-bold text-white mb-2">
+        <h1 className={`text-4xl font-racing font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {t('gallery.title')}
         </h1>
       </motion.div>
 
       {/* Filters and Controls */}
-      <div className="bg-gray-900/40 backdrop-blur-xl rounded-xl p-6 border border-red-900/30 shadow-lg shadow-red-900/10">
+      <div className={`backdrop-blur-xl rounded-xl p-6 border shadow-lg transition-colors duration-300 ${
+        isDark
+          ? 'bg-gray-900/40 border-red-900/30 shadow-red-900/10'
+          : 'bg-white/70 border-red-200/40 shadow-red-100/20'
+      }`}>
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Category Filter */}
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-400 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               <Filter className="inline w-4 h-4 mr-1" />
               {t('gallery.filterBy')}
             </label>
@@ -198,7 +205,7 @@ const Gallery: React.FC = () => {
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === 'all'
                     ? 'bg-red-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {t('gallery.allCategories')}
@@ -210,7 +217,7 @@ const Gallery: React.FC = () => {
                   className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
                     selectedCategory === cat.id
                       ? 'bg-red-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {cat.icon} {getLocalizedName(cat)}
@@ -222,13 +229,15 @@ const Gallery: React.FC = () => {
           {/* Sort and View Controls */}
           <div className="flex gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 {t('gallery.sortBy')}
               </label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-gray-800 text-white px-3 py-1 rounded border border-gray-700 focus:border-red-500 focus:outline-none"
+                className={`px-3 py-1 rounded border focus:border-red-500 focus:outline-none transition-colors ${
+                  isDark ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'
+                }`}
               >
                 <option value="newest">{t('gallery.newest')}</option>
                 <option value="oldest">{t('gallery.oldest')}</option>
@@ -239,7 +248,7 @@ const Gallery: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                 View
               </label>
               <div className="flex gap-1">
@@ -248,7 +257,7 @@ const Gallery: React.FC = () => {
                   className={`p-2 rounded ${
                     viewMode === 'grid'
                       ? 'bg-red-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <Grid size={16} />
@@ -258,7 +267,7 @@ const Gallery: React.FC = () => {
                   className={`p-2 rounded ${
                     viewMode === 'list'
                       ? 'bg-red-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      : isDark ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <List size={16} />
@@ -293,25 +302,33 @@ const Gallery: React.FC = () => {
                   whileHover={{ y: -8, scale: 1.02 }}
                 >
                   <Link to={`/work/${work.id}`}>
-                    <div className="relative bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group shadow-lg hover:shadow-red-900/30">
+                    <div className={`relative backdrop-blur-md rounded-xl overflow-hidden border transition-all duration-300 group shadow-lg ${
+                      isDark
+                        ? 'bg-gray-900/50 border-red-900/30 hover:border-red-600/60 hover:shadow-red-900/30'
+                        : 'bg-white/80 border-red-200/50 hover:border-red-400/60 hover:shadow-red-200/40'
+                    }`}>
                       {/* Gradient overlay on hover */}
                       <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-red-600/0 to-red-900/0 group-hover:from-red-600/5 group-hover:via-red-600/3 group-hover:to-red-900/5 transition-all duration-300 pointer-events-none z-10" />
 
-                      <div className="aspect-w-16 aspect-h-12 bg-gray-800 relative overflow-hidden">
+                      <div className={`aspect-w-16 aspect-h-12 relative overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                         <WorkImageCarousel workId={work.id} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                       </div>
 
                       <div className="p-5 relative z-10">
-                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg">
+                        <h3 className={`font-space font-semibold mb-2 group-hover:text-red-400 transition-colors text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {getLocalizedTitle(work)}
                         </h3>
                         {work.category && (
-                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
+                          <span className={`inline-block px-3 py-1 text-xs rounded-full mb-3 border ${
+                            isDark
+                              ? 'bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 border-red-600/20'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-600 border-red-200/50'
+                          }`}>
                             {work.category.icon} {getLocalizedName(work.category)}
                           </span>
                         )}
-                        <div className="flex items-center justify-between text-gray-400 text-sm">
+                        <div className={`flex items-center justify-between text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
                               <Eye size={15} className="group-hover:scale-110 transition-transform" />
@@ -344,25 +361,33 @@ const Gallery: React.FC = () => {
                   whileHover={{ x: 4 }}
                 >
                   <Link to={`/work/${work.id}`}>
-                    <div className="bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group p-5 flex gap-5 shadow-lg hover:shadow-red-900/20">
+                    <div className={`backdrop-blur-md rounded-xl overflow-hidden border transition-all duration-300 group p-5 flex gap-5 shadow-lg ${
+                      isDark
+                        ? 'bg-gray-900/50 border-red-900/30 hover:border-red-600/60 hover:shadow-red-900/20'
+                        : 'bg-white/80 border-red-200/50 hover:border-red-400/60 hover:shadow-red-200/30'
+                    }`}>
                       <img
                         src={work.thumbnail_url || work.image_url || '/placeholder.jpg'}
                         alt={getLocalizedTitle(work)}
                         className="w-36 h-28 object-cover rounded-lg flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg truncate">
+                        <h3 className={`font-space font-semibold mb-2 group-hover:text-red-400 transition-colors text-lg truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {getLocalizedTitle(work)}
                         </h3>
                         {work.category && (
-                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
+                          <span className={`inline-block px-3 py-1 text-xs rounded-full mb-3 border ${
+                            isDark
+                              ? 'bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 border-red-600/20'
+                              : 'bg-gradient-to-r from-red-50 to-red-100 text-red-600 border-red-200/50'
+                          }`}>
                             {work.category.icon} {getLocalizedName(work.category)}
                           </span>
                         )}
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                        <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           {i18n.language === 'uk' ? work.description_uk : work.description_en}
                         </p>
-                        <div className="flex items-center gap-5 text-gray-400 text-sm">
+                        <div className={`flex items-center gap-5 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
                             <Eye size={15} />
                             <span>{work.views || 0} {t('work.views')}</span>
@@ -387,7 +412,7 @@ const Gallery: React.FC = () => {
       )}
 
       {!loading && works.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
+        <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
           <p>{t('gallery.noWorks')}</p>
         </div>
       )}

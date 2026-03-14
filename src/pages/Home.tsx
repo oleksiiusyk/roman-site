@@ -6,9 +6,11 @@ import { ArrowRight, Eye, Star, MessageCircle, Sparkles } from 'lucide-react';
 import { supabase, type Work, type Category } from '../lib/supabase';
 import WorkImageCarousel from '../components/WorkImageCarousel';
 import SkeletonLoader from '../components/SkeletonLoader';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const { theme } = useTheme();
   const [latestWorks, setLatestWorks] = useState<Work[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -131,6 +133,8 @@ const Home: React.FC = () => {
     }
   };
 
+  const isDark = theme === 'dark';
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -166,7 +170,7 @@ const Home: React.FC = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-xl text-gray-300 font-space max-w-2xl mx-auto"
+          className={`text-xl font-space max-w-2xl mx-auto ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
         >
           {t('home.subtitle')}
         </motion.p>
@@ -208,7 +212,7 @@ const Home: React.FC = () => {
       {/* Latest Works */}
       <section>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-3xl font-racing font-bold text-white">
+          <h2 className={`text-3xl font-racing font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('home.latest')}
           </h2>
           <Link
@@ -235,25 +239,33 @@ const Home: React.FC = () => {
                 whileHover={{ y: -8, scale: 1.02 }}
               >
                 <Link to={`/work/${work.id}`}>
-                  <div className="relative bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-red-900/30 hover:border-red-600/60 transition-all duration-300 group shadow-lg hover:shadow-red-900/30">
+                  <div className={`relative backdrop-blur-md rounded-xl overflow-hidden border transition-all duration-300 group shadow-lg ${
+                    isDark
+                      ? 'bg-gray-900/50 border-red-900/30 hover:border-red-600/60 hover:shadow-red-900/30'
+                      : 'bg-white/80 border-red-200/50 hover:border-red-400/60 hover:shadow-red-200/40'
+                  }`}>
                     {/* Gradient overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-br from-red-600/0 via-red-600/0 to-red-900/0 group-hover:from-red-600/5 group-hover:via-red-600/3 group-hover:to-red-900/5 transition-all duration-300 pointer-events-none z-10" />
 
-                    <div className="aspect-w-16 aspect-h-12 bg-gray-800 relative overflow-hidden">
+                    <div className={`aspect-w-16 aspect-h-12 relative overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                       <WorkImageCarousel workId={work.id} />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </div>
 
                     <div className="p-5 relative z-10">
-                      <h3 className="font-space font-semibold text-white mb-2 group-hover:text-red-400 transition-colors text-lg">
+                      <h3 className={`font-space font-semibold mb-2 group-hover:text-red-400 transition-colors text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {i18n.language === 'uk' ? work.title_uk : work.title_en}
                       </h3>
                       {work.category && (
-                        <span className="inline-block px-3 py-1 bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 text-xs rounded-full mb-3 border border-red-600/20">
+                        <span className={`inline-block px-3 py-1 text-xs rounded-full mb-3 border ${
+                          isDark
+                            ? 'bg-gradient-to-r from-red-600/30 to-red-800/30 text-red-300 border-red-600/20'
+                            : 'bg-gradient-to-r from-red-50 to-red-100 text-red-600 border-red-200/50'
+                        }`}>
                           {work.category.icon} {i18n.language === 'uk' ? work.category.name_uk : work.category.name_en}
                         </span>
                       )}
-                      <div className="flex items-center justify-between text-gray-400 text-sm">
+                      <div className={`flex items-center justify-between text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center space-x-1.5 group-hover:text-gray-300 transition-colors">
                             <Eye size={15} className="group-hover:scale-110 transition-transform" />
@@ -278,7 +290,7 @@ const Home: React.FC = () => {
         )}
 
         {!loading && latestWorks.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
+          <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             <p>{t('common.noData')}</p>
           </div>
         )}

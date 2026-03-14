@@ -3,3 +3,128 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Dark theme (default) */
+  .dark {
+    --color-bg-primary: 0 0 0;
+    --color-bg-secondary: 17 24 39;
+    --color-bg-card: 17 24 39;
+    --color-bg-input: 31 41 55;
+    --color-bg-hover: 31 41 55;
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 209 213 219;
+    --color-text-muted: 156 163 175;
+    --color-text-faint: 107 114 128;
+    --color-border: 127 29 29;
+    --color-border-input: 55 65 81;
+    --color-surface: 17 24 39;
+    --color-surface-alpha: 0.5;
+    --color-overlay: 0 0 0;
+    --color-orb-1: 220 38 38;
+    --color-orb-opacity: 0.2;
+    --color-bg-icon-opacity: 0.05;
+    --color-grid-opacity: 0.05;
+    --color-nav-bg: 0 0 0;
+    --color-nav-alpha: 0.4;
+    --color-footer-bg: 0 0 0;
+    --color-footer-alpha: 0.5;
+    --gradient-bg: linear-gradient(to bottom right, rgb(0 0 0), rgb(17 24 39), rgb(69 10 10));
+  }
+
+  /* Light theme */
+  :root:not(.dark) {
+    --color-bg-primary: 255 255 255;
+    --color-bg-secondary: 249 250 251;
+    --color-bg-card: 255 255 255;
+    --color-bg-input: 243 244 246;
+    --color-bg-hover: 243 244 246;
+    --color-text-primary: 17 24 39;
+    --color-text-secondary: 55 65 81;
+    --color-text-muted: 107 114 128;
+    --color-text-faint: 156 163 175;
+    --color-border: 220 38 38;
+    --color-border-input: 209 213 219;
+    --color-surface: 255 255 255;
+    --color-surface-alpha: 0.8;
+    --color-overlay: 255 255 255;
+    --color-orb-1: 220 38 38;
+    --color-orb-opacity: 0.08;
+    --color-bg-icon-opacity: 0.04;
+    --color-grid-opacity: 0.03;
+    --color-nav-bg: 255 255 255;
+    --color-nav-alpha: 0.8;
+    --color-footer-bg: 255 255 255;
+    --color-footer-alpha: 0.8;
+    --gradient-bg: linear-gradient(to bottom right, rgb(255 255 255), rgb(254 242 242), rgb(254 226 226));
+  }
+}
+
+/* Apply gradient background */
+.theme-bg {
+  background: var(--gradient-bg);
+}
+
+/* Theme-aware surface */
+.theme-surface {
+  background-color: rgb(var(--color-surface) / var(--color-surface-alpha));
+}
+
+.theme-nav {
+  background-color: rgb(var(--color-nav-bg) / var(--color-nav-alpha));
+}
+
+.theme-footer {
+  background-color: rgb(var(--color-footer-bg) / var(--color-footer-alpha));
+}
+
+/* Theme-aware text */
+.theme-text {
+  color: rgb(var(--color-text-primary));
+}
+
+.theme-text-secondary {
+  color: rgb(var(--color-text-secondary));
+}
+
+.theme-text-muted {
+  color: rgb(var(--color-text-muted));
+}
+
+.theme-text-faint {
+  color: rgb(var(--color-text-faint));
+}
+
+/* Theme-aware backgrounds */
+.theme-bg-card {
+  background-color: rgb(var(--color-bg-card) / var(--color-surface-alpha));
+}
+
+.theme-bg-input {
+  background-color: rgb(var(--color-bg-input));
+}
+
+/* Theme-aware borders */
+.theme-border {
+  border-color: rgb(var(--color-border) / 0.3);
+}
+
+.theme-border-input {
+  border-color: rgb(var(--color-border-input));
+}
+
+/* Smooth transition on theme switch */
+.theme-bg,
+.theme-surface,
+.theme-nav,
+.theme-footer,
+.theme-text,
+.theme-text-secondary,
+.theme-text-muted,
+.theme-text-faint,
+.theme-bg-card,
+.theme-bg-input,
+.theme-border,
+.theme-border-input {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

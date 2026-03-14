@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, Camera, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ImageUploaderProps {
   onImageAdd: (imageUrl: string) => void;
@@ -13,6 +14,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
   const [manualUrl, setManualUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -133,20 +136,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
           border-2 border-dashed rounded-lg p-8 transition-all
           ${isDragging
             ? 'border-red-500 bg-red-500/10'
-            : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+            : isDark
+              ? 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+              : 'border-gray-300 bg-gray-50 hover:border-gray-400'
           }
         `}
       >
         <div className="text-center space-y-4">
           <div className="flex justify-center gap-4">
-            <Upload size={48} className="text-gray-400" />
+            <Upload size={48} className={isDark ? 'text-gray-400' : 'text-gray-400'} />
           </div>
 
           <div>
-            <p className="text-gray-300 font-medium mb-2">
+            <p className={`font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {isDragging ? 'Drop images here' : 'Drag & drop images here'}
             </p>
-            <p className="text-gray-500 text-sm">or choose an option below</p>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>or choose an option below</p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
@@ -196,7 +201,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
             </div>
           )}
 
-          <p className="text-xs text-gray-500 mt-4">
+          <p className={`text-xs mt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
             Supported: JPG, PNG, GIF, WebP (max 5MB)
           </p>
         </div>
@@ -204,7 +209,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
 
       {/* Manual URL Input */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-400">
+        <label className={`block text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
           Or paste image URL directly
         </label>
         <div className="flex gap-2">
@@ -213,7 +218,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
             value={manualUrl}
             onChange={(e) => setManualUrl(e.target.value)}
             placeholder="https://example.com/image.jpg"
-            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+            className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-red-500 ${
+              isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400'
+            }`}
             onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleManualUrlAdd())}
           />
           <button
@@ -224,7 +231,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
             Add URL
           </button>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
           Recommended: Upload to{' '}
           <a
             href="https://imgur.com/upload"
