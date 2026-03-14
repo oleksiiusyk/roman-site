@@ -369,6 +369,8 @@ const Gallery: React.FC = () => {
                       <img
                         src={work.thumbnail_url || work.image_url || '/placeholder.jpg'}
                         alt={getLocalizedTitle(work)}
+                        loading="lazy"
+                        decoding="async"
                         className="w-36 h-28 object-cover rounded-lg flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">

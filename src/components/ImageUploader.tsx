@@ -84,7 +84,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
       const { error } = await supabase.storage
         .from('work-images')
         .upload(filePath, file, {
-          cacheControl: '3600',
+          cacheControl: '604800',
           upsert: false
         });
 

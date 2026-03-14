@@ -222,6 +222,8 @@ const WorkDetail: React.FC = () => {
               <img
                 src={images.length > 0 ? images[selectedImageIndex]?.image_url : work.image_url || '/placeholder.jpg'}
                 alt={title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-auto"
               />
             </div>
@@ -242,6 +244,8 @@ const WorkDetail: React.FC = () => {
                     <img
                       src={image.image_url}
                       alt={`${title} - ${index + 1}`}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                     {image.is_primary && (

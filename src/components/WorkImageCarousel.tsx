@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, type WorkImage } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
+import { getCached, setCache } from '../lib/cache';
 
 interface WorkImageCarouselProps {
   workId: string;
@@ -14,6 +15,15 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
 
   useEffect(() => {
     const fetchImages = async () => {
+      const cacheKey = `work_images:${workId}`;
+      const cached = getCached<WorkImage[]>(cacheKey);
+      if (cached && cached.length > 0) {
+        setImages(cached);
+        const primaryIndex = cached.findIndex(img => img.is_primary);
+        setCurrentIndex(primaryIndex >= 0 ? primaryIndex : 0);
+        return;
+      }
+
       const { data } = await supabase
         .from('work_images')
         .select('*')
@@ -21,8 +31,8 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
         .order('display_order');
 
       if (data && data.length > 0) {
+        setCache(cacheKey, data);
         setImages(data);
-        // Set primary image as initial
         const primaryIndex = data.findIndex(img => img.is_primary);
         setCurrentIndex(primaryIndex >= 0 ? primaryIndex : 0);
       }
@@ -61,6 +71,8 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
       <img
         src={images[currentIndex]?.image_url}
         alt=""
+        loading="lazy"
+        decoding="async"
         className="w-full h-48 object-cover transition-opacity duration-300"
       />
 
