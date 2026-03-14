@@ -3,14 +3,16 @@ import { Upload, Camera, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../contexts/ThemeContext';
+import { compressImage, formatBytes } from '../lib/imageCompression';
 
 interface ImageUploaderProps {
-  onImageAdd: (imageUrl: string) => void;
+  onImageAdd: (imageUrl: string, thumbnailUrl: string) => void;
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState('');
   const [manualUrl, setManualUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -52,13 +54,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
       await processFile(file);
     }
 
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const processFile = async (file: File) => {
@@ -67,45 +64,70 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
       return;
     }
 
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('Image size should be less than 20MB');
       return;
     }
 
     setUploading(true);
+    const originalSize = file.size;
 
     try {
-      // Upload to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `works/${fileName}`;
+      // Compress
+      setStatus('Compressing...');
+      const { full, thumbnail } = await compressImage(file);
 
-      const { error } = await supabase.storage
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2);
+
+      // Upload full-size
+      setStatus('Uploading full image...');
+      const fullPath = `works/${timestamp}-${random}-full.webp`;
+      const { error: fullError } = await supabase.storage
         .from('work-images')
-        .upload(filePath, file, {
+        .upload(fullPath, full, {
+          contentType: 'image/webp',
           cacheControl: '604800',
-          upsert: false
+          upsert: false,
         });
 
-      if (error) {
-        console.error('Upload error:', error);
-        toast.error(error.message || 'Failed to upload image');
+      if (fullError) {
+        toast.error(fullError.message || 'Failed to upload image');
         return;
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Upload thumbnail
+      setStatus('Uploading thumbnail...');
+      const thumbPath = `works/${timestamp}-${random}-thumb.webp`;
+      const { error: thumbError } = await supabase.storage
         .from('work-images')
-        .getPublicUrl(filePath);
+        .upload(thumbPath, thumbnail, {
+          contentType: 'image/webp',
+          cacheControl: '604800',
+          upsert: false,
+        });
 
-      toast.success('Image uploaded successfully!');
-      onImageAdd(publicUrl);
+      if (thumbError) {
+        toast.error(thumbError.message || 'Failed to upload thumbnail');
+        return;
+      }
+
+      const { data: { publicUrl: fullUrl } } = supabase.storage
+        .from('work-images')
+        .getPublicUrl(fullPath);
+
+      const { data: { publicUrl: thumbUrl } } = supabase.storage
+        .from('work-images')
+        .getPublicUrl(thumbPath);
+
+      toast.success(`Compressed ${formatBytes(originalSize)} → ${formatBytes(full.size)}`);
+      onImageAdd(fullUrl, thumbUrl);
     } catch (err) {
       console.error('Error processing file:', err);
       toast.error('Failed to upload image');
     } finally {
       setUploading(false);
+      setStatus('');
     }
   };
 
@@ -117,7 +139,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
 
     try {
       new URL(manualUrl);
-      onImageAdd(manualUrl);
+      onImageAdd(manualUrl, manualUrl);
       setManualUrl('');
       toast.success('Image URL added');
     } catch (error) {
@@ -144,18 +166,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
       >
         <div className="text-center space-y-4">
           <div className="flex justify-center gap-4">
-            <Upload size={48} className={isDark ? 'text-gray-400' : 'text-gray-400'} />
+            <Upload size={48} className="text-gray-400" />
           </div>
 
           <div>
             <p className={`font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {isDragging ? 'Drop images here' : 'Drag & drop images here'}
             </p>
-            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>or choose an option below</p>
+            <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              Images are auto-compressed before upload
+            </p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3">
-            {/* File Select Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -174,7 +197,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
               className="hidden"
             />
 
-            {/* Camera Capture Button (Mobile) */}
             <button
               type="button"
               onClick={() => cameraInputRef.current?.click()}
@@ -197,12 +219,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
           {uploading && (
             <div className="flex items-center justify-center gap-2 text-blue-400">
               <Loader size={18} className="animate-spin" />
-              <span>Processing image...</span>
+              <span>{status || 'Processing...'}</span>
             </div>
           )}
 
           <p className={`text-xs mt-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-            Supported: JPG, PNG, GIF, WebP (max 5MB)
+            Supported: JPG, PNG, GIF, WebP (max 20MB, auto-compressed)
           </p>
         </div>
       </div>
@@ -233,23 +255,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageAdd }) => {
         </div>
         <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
           Recommended: Upload to{' '}
-          <a
-            href="https://imgur.com/upload"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            Imgur
-          </a>
+          <a href="https://imgur.com/upload" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">Imgur</a>
           ,{' '}
-          <a
-            href="https://imgbb.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            ImgBB
-          </a>
+          <a href="https://imgbb.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">ImgBB</a>
           , or use Supabase Storage
         </p>
       </div>

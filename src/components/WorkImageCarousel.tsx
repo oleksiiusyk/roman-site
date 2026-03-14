@@ -69,7 +69,7 @@ const WorkImageCarousel: React.FC<WorkImageCarouselProps> = ({ workId }) => {
     >
       {/* Current Image */}
       <img
-        src={images[currentIndex]?.image_url}
+        src={images[currentIndex]?.thumbnail_url || images[currentIndex]?.image_url}
         alt=""
         loading="lazy"
         decoding="async"

@@ -132,8 +132,9 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     setImages(data || []);
   };
 
-  const addImage = async (imageUrl?: string) => {
+  const addImage = async (imageUrl?: string, thumbnailUrl?: string) => {
     const urlToAdd = imageUrl || newImageUrl;
+    const thumbToAdd = thumbnailUrl || urlToAdd;
 
     if (!urlToAdd.trim()) {
       toast.error('Please enter an image URL');
@@ -148,6 +149,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         .insert({
           work_id: work.id,
           image_url: urlToAdd,
+          thumbnail_url: thumbToAdd,
           is_primary: isPrimary,
           display_order: images.length,
         });
@@ -163,7 +165,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           .from('works')
           .update({
             image_url: urlToAdd,
-            thumbnail_url: urlToAdd,
+            thumbnail_url: thumbToAdd,
           })
           .eq('id', work.id);
       }
@@ -179,6 +181,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         id: `temp-${Date.now()}`,
         work_id: '',
         image_url: urlToAdd,
+        thumbnail_url: thumbToAdd,
         is_primary: images.length === 0,
         display_order: images.length,
         created_at: new Date().toISOString(),
@@ -285,6 +288,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           const imageInserts = images.map((img, idx) => ({
             work_id: workId,
             image_url: img.image_url,
+            thumbnail_url: img.thumbnail_url || img.image_url,
             is_primary: img.is_primary,
             display_order: idx,
           }));
@@ -429,8 +433,8 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
         {/* Image Uploader */}
         <ImageUploader
-          onImageAdd={(imageUrl) => {
-            addImage(imageUrl);
+          onImageAdd={(imageUrl, thumbnailUrl) => {
+            addImage(imageUrl, thumbnailUrl);
           }}
         />
 
