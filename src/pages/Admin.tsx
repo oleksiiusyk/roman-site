@@ -144,19 +144,39 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     if (work?.id) {
       // Add to existing work
       const isPrimary = images.length === 0;
+      const insertData: Record<string, unknown> = {
+        work_id: work.id,
+        image_url: urlToAdd,
+        is_primary: isPrimary,
+        display_order: images.length,
+      };
+      if (thumbToAdd && thumbToAdd !== urlToAdd) {
+        insertData.thumbnail_url = thumbToAdd;
+      }
       const { error } = await supabase
         .from('work_images')
-        .insert({
-          work_id: work.id,
-          image_url: urlToAdd,
-          thumbnail_url: thumbToAdd,
-          is_primary: isPrimary,
-          display_order: images.length,
-        });
+        .insert(insertData);
 
       if (error) {
-        toast.error('Failed to add image');
-        return;
+        console.error('Failed to add image:', error);
+        // Retry without thumbnail_url if column doesn't exist yet
+        if (error.message?.includes('thumbnail_url')) {
+          const { error: retryError } = await supabase
+            .from('work_images')
+            .insert({
+              work_id: work.id,
+              image_url: urlToAdd,
+              is_primary: isPrimary,
+              display_order: images.length,
+            });
+          if (retryError) {
+            toast.error('Failed to add image');
+            return;
+          }
+        } else {
+          toast.error('Failed to add image');
+          return;
+        }
       }
 
       // If this is the first image (primary), update the works table
@@ -165,7 +185,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           .from('works')
           .update({
             image_url: urlToAdd,
-            thumbnail_url: thumbToAdd,
+            thumbnail_url: thumbToAdd || urlToAdd,
           })
           .eq('id', work.id);
       }
@@ -285,13 +305,18 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
 
         // Insert images for new work
         if (images.length > 0) {
-          const imageInserts = images.map((img, idx) => ({
-            work_id: workId,
-            image_url: img.image_url,
-            thumbnail_url: img.thumbnail_url || img.image_url,
-            is_primary: img.is_primary,
-            display_order: idx,
-          }));
+          const imageInserts = images.map((img, idx) => {
+            const entry: Record<string, unknown> = {
+              work_id: workId,
+              image_url: img.image_url,
+              is_primary: img.is_primary,
+              display_order: idx,
+            };
+            if (img.thumbnail_url && img.thumbnail_url !== img.image_url) {
+              entry.thumbnail_url = img.thumbnail_url;
+            }
+            return entry;
+          });
 
           await supabase.from('work_images').insert(imageInserts);
         }
