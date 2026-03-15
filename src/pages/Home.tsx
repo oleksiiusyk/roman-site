@@ -70,7 +70,7 @@ const Home: React.FC = () => {
         return {
           ...work,
           image_url: primaryImage?.image_url || work.image_url,
-          thumbnail_url: primaryImage?.image_url || work.thumbnail_url,
+          thumbnail_url: primaryImage?.thumbnail_url || primaryImage?.image_url || work.thumbnail_url,
         };
       });
 
