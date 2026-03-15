@@ -214,11 +214,10 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
     if (!window.confirm(t('admin.confirmDeleteImage'))) return;
 
     if (imageId.startsWith('temp-')) {
-      // Remove from temporary state
       setImages(images.filter(img => img.id !== imageId));
       toast.success('Image removed!');
     } else {
-      // Delete from database
+      const deletedImage = images.find(img => img.id === imageId);
       const { error } = await supabase
         .from('work_images')
         .delete()
@@ -228,9 +227,40 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
         toast.error('Failed to remove image');
         return;
       }
+
+      // If we deleted the primary image, promote another one
+      if (deletedImage?.is_primary && work?.id) {
+        const { data: remaining } = await supabase
+          .from('work_images')
+          .select('*')
+          .eq('work_id', work.id)
+          .order('display_order')
+          .limit(1);
+
+        if (remaining && remaining.length > 0) {
+          await supabase
+            .from('work_images')
+            .update({ is_primary: true })
+            .eq('id', remaining[0].id);
+
+          await supabase
+            .from('works')
+            .update({
+              image_url: remaining[0].image_url,
+              thumbnail_url: remaining[0].thumbnail_url || remaining[0].image_url,
+            })
+            .eq('id', work.id);
+        } else {
+          // No images left — clear the works table URLs
+          await supabase
+            .from('works')
+            .update({ image_url: '', thumbnail_url: '' })
+            .eq('id', work.id);
+        }
+      }
+
       toast.success('Image removed!');
       fetchImages();
-      // Refresh parent works list to show updated thumbnail
       if (onImageUpdate) onImageUpdate();
     }
   };
@@ -251,7 +281,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
       // Get the new primary image URL and update works table
       const { data: primaryImage } = await supabase
         .from('work_images')
-        .select('image_url')
+        .select('image_url, thumbnail_url')
         .eq('id', imageId)
         .single();
 
@@ -260,7 +290,7 @@ const WorkForm: React.FC<{ work?: Work; onSave: () => void; onCancel: () => void
           .from('works')
           .update({
             image_url: primaryImage.image_url,
-            thumbnail_url: primaryImage.image_url,
+            thumbnail_url: primaryImage.thumbnail_url || primaryImage.image_url,
           })
           .eq('id', work.id);
       }
